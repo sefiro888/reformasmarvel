@@ -1,7 +1,7 @@
 /* Reformarvel Construcciones · interacción
    intro, transiciones, scroll suave, cabecera, menús, banner en movimiento, nivel de burbuja,
-   rótulos, revelados, lista de oficios, proceso horizontal, petición por WhatsApp, galería,
-   chispas, cursor, botones magnéticos e inclinación 3D */
+   rótulos, revelados, proceso horizontal, petición por WhatsApp, comparadores, galería,
+   onomatopeyas y chispas */
 (() => {
   const $ = (s, c = document) => c.querySelector(s);
   const $$ = (s, c = document) => [...c.querySelectorAll(s)];
@@ -204,16 +204,6 @@
     dots[0].setAttribute('aria-current', true);
   }
 
-  /* Foco de luz que sigue al ratón en las portadas */
-  $$('.hero, .s-hero').forEach(h => {
-    if (!fine || reduce) return;
-    h.addEventListener('pointermove', e => {
-      const r = h.getBoundingClientRect();
-      h.style.setProperty('--mx', (e.clientX - r.left) + 'px');
-      h.style.setProperty('--my', (e.clientY - r.top) + 'px');
-    });
-  });
-
   /* ---------- Nivel de burbuja ---------- */
   const level = $('[data-level]');
   if (level && fine) {
@@ -324,33 +314,6 @@
       requestAnimationFrame(tick);
     }, { threshold: .6 }).observe(b);
   });
-
-  /* ---------- Lista de oficios con imagen que sigue al ratón ---------- */
-  const list = $('[data-svc-list]'), fl = $('[data-svc-float]');
-  if (list && fl && fine && !reduce) {
-    const imgs = $$('img', fl);
-    let mx = 0, my = 0, x = 0, y = 0, on = false;
-    $$('.svc-row', list).forEach(row => {
-      row.addEventListener('pointerenter', () => {
-        imgs.forEach((im, k) => im.classList.toggle('is-on', k === +row.dataset.preview));
-        on = true; fl.classList.add('is-on');
-      });
-    });
-    list.addEventListener('pointerleave', () => { on = false; fl.classList.remove('is-on'); });
-    $$('.svc-wa', list).forEach(a => {
-      a.addEventListener('pointerenter', () => fl.classList.remove('is-on'));
-      a.addEventListener('pointerleave', () => { if (on) fl.classList.add('is-on'); });
-    });
-    addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; }, { passive: true });
-    const loop = () => {
-      const dx = mx - x;
-      x = lerp(x, mx, .14); y = lerp(y, my, .14);
-      fl.style.left = x + 'px'; fl.style.top = y + 'px';
-      fl.style.setProperty('--rot', clamp(dx * .05, -10, 10).toFixed(2) + 'deg');
-      requestAnimationFrame(loop);
-    };
-    requestAnimationFrame(loop);
-  }
 
   /* ---------- Proceso: recorrido horizontal mientras bajas ---------- */
   const pin = $('[data-pin]');
@@ -594,57 +557,4 @@
     new IntersectionObserver(en => { visible = en[0].isIntersecting; if (visible && !running) { running = true; last = performance.now(); requestAnimationFrame(loop); } }).observe(sec);
   });
 
-  if (!fine) return;
-
-  /* ---------- Cursor ---------- */
-  const cursor = $('.cursor');
-  root.classList.add('has-cursor');
-  cursor.classList.add('is-hidden');
-  const dot = $('.cursor-dot', cursor), ring = $('.cursor-ring', cursor), label = $('.cursor-label', cursor);
-  let cx = innerWidth / 2, cy = innerHeight / 2, rx = cx, ry = cy;
-  addEventListener('pointermove', e => { cx = e.clientX; cy = e.clientY; cursor.classList.remove('is-hidden'); }, { passive: true });
-  document.addEventListener('pointerleave', () => cursor.classList.add('is-hidden'));
-  const cloop = () => {
-    rx = lerp(rx, cx, .2); ry = lerp(ry, cy, .2);
-    dot.style.transform = `translate(${cx}px,${cy}px)`;
-    ring.style.transform = `translate(${rx}px,${ry}px)`;
-    requestAnimationFrame(cloop);
-  };
-  requestAnimationFrame(cloop);
-  document.addEventListener('pointerover', e => {
-    const t = e.target;
-    const lab = t.closest('[data-cursor]');
-    const wa = t.closest('a[href*="wa.me"]');
-    const drag = t.closest('[data-hero]') && !t.closest('a,button');
-    const zoom = t.closest('[data-lightbox]');
-    const text = lab ? lab.dataset.cursor : zoom ? 'Abrir' : drag ? 'Arrastra' : '';
-    label.textContent = text;
-    cursor.classList.toggle('is-label', !!text);
-    cursor.classList.toggle('is-wa', !!wa && !text);
-    cursor.classList.toggle('is-link', !text && !!t.closest('a, button, label, summary, input, textarea'));
-  });
-
-  /* ---------- Botones magnéticos ---------- */
-  $$('.magnetic').forEach(el => {
-    el.addEventListener('pointermove', e => {
-      const r = el.getBoundingClientRect();
-      el.style.transform = `translate(${((e.clientX - r.left - r.width / 2) * .2).toFixed(1)}px,${((e.clientY - r.top - r.height / 2) * .3).toFixed(1)}px)`;
-    });
-    el.addEventListener('pointerleave', () => { el.style.transform = ''; });
-  });
-
-  /* ---------- Inclinación 3D con reflejo ---------- */
-  $$('.tilt').forEach(el => {
-    const glare = document.createElement('span'); glare.className = 'glare'; glare.setAttribute('aria-hidden', 'true'); el.append(glare);
-    el.addEventListener('pointermove', e => {
-      const r = el.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
-      el.classList.add('tilting');
-      el.style.setProperty('--rx', ((.5 - py) * 8).toFixed(2) + 'deg');
-      el.style.setProperty('--ry', ((px - .5) * 10).toFixed(2) + 'deg');
-      el.style.setProperty('--gx', (px * 100).toFixed(1) + '%');
-      el.style.setProperty('--gy', (py * 100).toFixed(1) + '%');
-    });
-    el.addEventListener('pointerleave', () => { el.classList.remove('tilting'); el.style.setProperty('--rx', '0deg'); el.style.setProperty('--ry', '0deg'); });
-  });
 })();

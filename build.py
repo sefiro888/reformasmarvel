@@ -126,7 +126,7 @@ def compare(b,base='',big=False,eager=False):
  sizes='(max-width: 700px) 100vw, 60vw' if big else '(max-width: 700px) 100vw, 33vw'
  img=lambda side,alt:f'<img src="{base}assets/ba-{slug}-{side}-1000.webp" srcset="{base}assets/ba-{slug}-{side}-520.webp 520w, {base}assets/ba-{slug}-{side}-1000.webp 1000w" sizes="{sizes}" width="768" height="1024" alt="{esc(alt)}" {"" if eager else "loading=lazy"} decoding="async">'
  return f'''<figure class="ba{" ba-big" if big else ""}" data-cat="{cat}">
- <div class="ba-stage" data-ba data-cursor="Arrastra">
+ <div class="ba-stage" data-ba>
   <div class="ba-after">{img("despues",title+": después (imagen ilustrativa)")}</div>
   <div class="ba-before">{img("antes",title+": antes (imagen ilustrativa)")}</div>
   <span class="ba-label ba-l">Antes</span><span class="ba-label ba-r">Después</span>
@@ -164,7 +164,7 @@ def header(base,current=''):
   <a class="nav-link" href="{base}index.html#tu-peticion">Tu petición</a>
   <a class="nav-link" href="{base}index.html#preguntas">Preguntas</a>
  </nav>
- <a class="btn btn-red btn-sm header-cta magnetic" href="{wa()}" data-wa target="_blank" rel="noopener">{WA_ICON}<span>Presupuesto</span></a>
+ <a class="btn btn-red btn-sm header-cta" href="{wa()}" data-wa target="_blank" rel="noopener">{WA_ICON}<span>Presupuesto</span></a>
  <button class="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menú" data-burger><span></span><span></span></button>
 </header>
 <div class="menu" id="menu" data-menu hidden>
@@ -191,8 +191,8 @@ def cta(base,topic=''):
   <h2 class="cta-title split">¿Empezamos<br><em>tu obra?</em></h2>
   <p class="lead reveal">Un mensaje de WhatsApp, unas fotos del espacio y lo que te gustaría cambiar. Con eso empezamos a hablar de tu reforma.</p>
   <div class="cta-actions reveal">
-   <a class="btn btn-wa btn-xl magnetic" href="{wa(topic)}" data-wa target="_blank" rel="noopener">{WA_ICON}<span>{esc(label)}</span></a>
-   <a class="btn btn-ghost magnetic" href="tel:{C['phone_e164']}">{PHONE}<span>{C['phone']}</span></a>
+   <a class="btn btn-wa btn-xl" href="{wa(topic)}" data-wa target="_blank" rel="noopener">{WA_ICON}<span>{esc(label)}</span></a>
+   <a class="btn btn-ghost" href="tel:{C['phone_e164']}">{PHONE}<span>{C['phone']}</span></a>
   </div>
  </div>
 </section>'''
@@ -214,7 +214,6 @@ def footer(base):
  <div class="footer-bottom"><span>© Reformarvel Construcciones</span><span>Imágenes ilustrativas: no documentan obras realizadas.</span><span>Empresa independiente, sin relación con Marvel ni con The Walt Disney Company. Estética de cómic de creación propia.</span><a href="{base}aviso-legal.html">Aviso legal</a><a href="{base}privacidad.html">Privacidad</a></div>
 </footer>
 <a class="wa-float" href="{wa()}" data-wa target="_blank" rel="noopener" aria-label="Escribir por WhatsApp"><span class="wa-bubble" data-wa-bubble>¿Hablamos de tu reforma?</span>{WA_ICON}</a>
-<div class="cursor" aria-hidden="true"><span class="cursor-dot"></span><span class="cursor-ring"><b class="cursor-label"></b></span></div>
 <div class="veil" aria-hidden="true"><span class="veil-mark">R</span></div>'''
 
 def document(title,desc,body,base='',path='index.html',current='',topic='',page='home'):
@@ -292,7 +291,7 @@ def builder(service=None):
     <div class="phone-chat"><div class="bubble" data-preview-msg></div><p class="phone-hint" data-preview-hint>Elige una opción y mira cómo se escribe ✍️</p></div>
    </div>
    <div class="phone-actions">
-    <a class="btn btn-wa btn-xl magnetic" href="{wa(name.lower() if name else '')}" data-builder-send target="_blank" rel="noopener">{WA_ICON}<span>Enviar por WhatsApp</span></a>
+    <a class="btn btn-wa btn-xl" href="{wa(name.lower() if name else '')}" data-builder-send target="_blank" rel="noopener">{WA_ICON}<span>Enviar por WhatsApp</span></a>
     <button class="btn btn-ghost" type="button" data-builder-copy>Copiar mensaje</button>
    </div>
    <p class="phone-note" role="status" data-builder-status>No guardamos nada: el mensaje solo sale de tu móvil cuando tú lo envías.</p>
@@ -306,10 +305,10 @@ slides=''.join(f'<div class="slide{" is-active" if i==0 else ""}" data-slide="{i
 dots=''.join(f'<button type="button" class="hero-dot{" is-active" if i==0 else ""}" data-go="{i}" aria-label="Ver {esc(BY_SLUG[k][1])}"><span class="hd-n">{i+1:02}</span><span class="hd-t">{BY_SLUG[k][1]}</span><span class="hd-bar"><i></i></span></button>' for i,k in enumerate(HERO))
 first=BY_SLUG[HERO[0]]
 svc_rows=''.join(f'''<li class="svc-row reveal" data-preview="{i}">
- <a class="svc-link" href="servicios/{s[0]}.html" data-cursor="Ver"><span class="svc-n">{i+1:02}</span><span class="svc-main"><span class="svc-name">{s[1]}</span><span class="svc-power"><b>Superpoder:</b> {POWERS[s[0]]}</span><span class="svc-more"><span><span class="svc-desc">{first_sentence(s[5])}</span><span class="svc-tasks">{''.join('<i>'+t+'</i>' for t in s[6].split('|'))}</span></span></span></span><span class="svc-tag">{s[2]}</span><span class="svc-thumb">{image(s[0],'Imagen ilustrativa: '+s[1].lower(),'',False,'','160px')}</span>{ARROW}</a>
+ <a class="svc-link" href="servicios/{s[0]}.html"><span class="svc-n">{i+1:02}</span><span class="svc-main"><span class="svc-name">{s[1]}</span><span class="svc-power"><b>Superpoder:</b> {POWERS[s[0]]}</span><span class="svc-more"><span><span class="svc-desc">{first_sentence(s[5])}</span><span class="svc-tasks">{''.join('<i>'+t+'</i>' for t in s[6].split('|'))}</span></span></span></span><span class="svc-tag">{s[2]}</span><span class="svc-thumb">{image(s[0],'Imagen ilustrativa: '+s[1].lower(),'',False,'','(max-width: 900px) 64px, 140px')}</span>{ARROW}</a>
  <a class="svc-wa" href="{wa(s[1].lower())}" data-wa="{esc(s[1].lower())}" target="_blank" rel="noopener" aria-label="Pedir presupuesto de {esc(s[1].lower())} por WhatsApp">{WA_ICON}</a>
 </li>''' for i,s in enumerate(SERVICES))
-villains=''.join(f'''<a class="villain reveal tilt" href="servicios/{slug}.html" data-cursor="Al rescate">
+villains=''.join(f'''<a class="villain reveal" href="servicios/{slug}.html">
  <span class="v-sfx">{BURST}<b>{sfx}</b></span>
  <span class="v-tag">Villano nº {i+1:02}</span>
  <h3 class="v-name">{name}</h3>
@@ -327,7 +326,6 @@ faq=''.join(f'<details class="faq-item reveal"><summary><span>{q}</span><i aria-
 home=f'''<section class="hero" data-hero>
  <div class="hero-slides">{slides}</div>
  <div class="hero-shade" aria-hidden="true"></div>
- <div class="hero-spot" aria-hidden="true"></div>
  <div class="hero-in">
   <p class="kicker hero-kicker"><span class="pulse" aria-hidden="true"></span>Reformas y construcción · Los Garres, Murcia</p>
   <h1 class="hero-title"><span class="line"><span>Tu casa,</span></span><span class="line"><span>a otro <em>nivel.</em></span></span></h1>
@@ -335,8 +333,8 @@ home=f'''<section class="hero" data-hero>
   <p class="now-desc" data-now-desc>{first_sentence(first[5])}</p>
   <ul class="now-tasks" data-now-tasks>{''.join('<li>'+t+'</li>' for t in first[6].split('|'))}</ul>
   <div class="hero-actions">
-   <a class="btn btn-wa btn-lg magnetic" href="{wa(first[1].lower())}" data-hero-wa target="_blank" rel="noopener">{WA_ICON}<span>Pedir presupuesto de <b data-now-btn>{first[1].lower()}</b></span></a>
-   <a class="btn btn-ghost magnetic" href="#servicios">Ver los 11 oficios</a>
+   <a class="btn btn-wa btn-lg" href="{wa(first[1].lower())}" data-hero-wa target="_blank" rel="noopener">{WA_ICON}<span>Pedir presupuesto de <b data-now-btn>{first[1].lower()}</b></span></a>
+   <a class="btn btn-ghost" href="#servicios">Ver los 11 oficios</a>
   </div>
  </div>
  <div class="level" aria-hidden="true" data-level><span class="level-glass"><i class="level-bubble"></i><b></b><b></b></span><span class="level-txt">Mueve el ratón · <em data-level-txt>busca el nivel</em></span></div>
@@ -370,7 +368,6 @@ home=f'''<section class="hero" data-hero>
 <section class="services" id="servicios">
  <div class="section-head"><p class="kicker reveal">01 — Los oficios</p><h2 class="split">Once oficios,<br><em>once superpoderes.</em></h2><p class="lead reveal">Cada oficio resuelve una parte de tu reforma. Pasa por encima para ver qué hace cada uno, entra para conocerlo a fondo o pulsa el icono de WhatsApp: el mensaje llega con el servicio ya escrito.</p></div>
  <ul class="svc-list" data-svc-list>{svc_rows}</ul>
- <div class="svc-float" aria-hidden="true" data-svc-float>{float_imgs}</div>
 </section>
 <section class="process" id="proceso" data-pin>
  <div class="pin-sticky">
@@ -379,7 +376,7 @@ home=f'''<section class="hero" data-hero>
  </div>
 </section>
 <section class="teaser">
- <div class="teaser-copy"><p class="kicker reveal">La transformación</p><h2 class="split">Arrastra y mira<br><em>el cambio.</em></h2><p class="lead reveal">Desliza el control para pasar del antes al después. En la página de cómo trabajamos tienes diez transformaciones más, explicadas oficio por oficio.</p><a class="btn btn-red magnetic reveal" href="como-trabajamos.html">Ver cómo trabajamos {ARROW}</a><p class="ba-note reveal">Imágenes ilustrativas: muestran el tipo de cambio, no obras realizadas por Reformarvel.</p></div>
+ <div class="teaser-copy"><p class="kicker reveal">La transformación</p><h2 class="split">Arrastra y mira<br><em>el cambio.</em></h2><p class="lead reveal">Desliza el control para pasar del antes al después. En la página de cómo trabajamos tienes diez transformaciones más, explicadas oficio por oficio.</p><a class="btn btn-red reveal" href="como-trabajamos.html">Ver cómo trabajamos {ARROW}</a><p class="ba-note reveal">Imágenes ilustrativas: muestran el tipo de cambio, no obras realizadas por Reformarvel.</p></div>
  {compare(BEFORE_AFTER[0],'',True)}
 </section>
 {builder()}
@@ -402,20 +399,19 @@ for index,s in enumerate(SERVICES):
  heading=name if slug!='impermeabilizaciones' else 'Impermea&shy;biliza&shy;ciones'
  prev=SERVICES[index-1];nxt=SERVICES[(index+1)%len(SERVICES)]
  related=[SERVICES[(index+k)%len(SERVICES)] for k in (2,3,4)]
- rel=''.join(f'<a class="rel-card tilt" href="{r[0]}.html" data-cursor="Ver"><div class="rel-img">{image(r[0],"Imagen ilustrativa: "+r[1].lower(),"../",False,"","(max-width: 700px) 90vw, 30vw")}</div><div class="rel-copy">{icon(r[0])}<h3>{r[1]}</h3><p>{r[2]}</p></div></a>' for r in related)
+ rel=''.join(f'<a class="rel-card" href="{r[0]}.html"><div class="rel-img">{image(r[0],"Imagen ilustrativa: "+r[1].lower(),"../",False,"","(max-width: 700px) 90vw, 30vw")}</div><div class="rel-copy">{icon(r[0])}<h3>{r[1]}</h3><p>{r[2]}</p></div></a>' for r in related)
  task_items=''.join(f'<li class="reveal"><span class="tick" aria-hidden="true"></span>{t}</li>' for t in tasks.split('|'))
  page=f'''<section class="s-hero">
  <div class="s-hero-media" data-parallax-hero>{image(slug,"Imagen ilustrativa: "+name.lower(),"../",True,"","100vw",True)}</div>
  <div class="hero-shade" aria-hidden="true"></div>
- <div class="hero-spot" aria-hidden="true"></div>
  <div class="s-hero-in">
   <nav class="crumbs" aria-label="Ruta"><a href="../index.html">Inicio</a><span>/</span><a href="../index.html#servicios">Servicios</a><span>/</span><span aria-current="page">{name}</span></nav>
   <p class="kicker"><span class="s-icon">{icon(slug)}</span>{index+1:02} / 11 — Servicio</p>
   <h1 class="s-title{" long" if slug=="impermeabilizaciones" or len(name)>14 else ""}" data-letters>{heading}</h1>
   <p class="s-tag"><em>{tag}</em></p>
   <div class="hero-actions">
-   <a class="btn btn-wa btn-lg magnetic" href="{wa(name.lower())}" data-wa="{esc(name.lower())}" target="_blank" rel="noopener">{WA_ICON}<span>Pedir presupuesto de {name.lower()}</span></a>
-   <a class="btn btn-ghost magnetic" href="#tu-peticion">Prepararlo a medida</a>
+   <a class="btn btn-wa btn-lg" href="{wa(name.lower())}" data-wa="{esc(name.lower())}" target="_blank" rel="noopener">{WA_ICON}<span>Pedir presupuesto de {name.lower()}</span></a>
+   <a class="btn btn-ghost" href="#tu-peticion">Prepararlo a medida</a>
   </div>
  </div>
  <p class="hero-note">Imagen ilustrativa</p>
@@ -436,8 +432,8 @@ for index,s in enumerate(SERVICES):
  <div class="rel-grid">{rel}</div>
 </section>
 <nav class="pager" aria-label="Servicio anterior y siguiente">
- <a class="pager-link prev" href="{prev[0]}.html" data-cursor="Ver"><small>{ARROW} Anterior</small><span>{prev[1]}</span>{image(prev[0],"", "../",False,"pager-img","40vw")}</a>
- <a class="pager-link next" href="{nxt[0]}.html" data-cursor="Ver"><small>Siguiente {ARROW}</small><span>{nxt[1]}</span>{image(nxt[0],"", "../",False,"pager-img","40vw")}</a>
+ <a class="pager-link prev" href="{prev[0]}.html"><small>{ARROW} Anterior</small><span>{prev[1]}</span>{image(prev[0],"", "../",False,"pager-img","40vw")}</a>
+ <a class="pager-link next" href="{nxt[0]}.html"><small>Siguiente {ARROW}</small><span>{nxt[1]}</span>{image(nxt[0],"", "../",False,"pager-img","40vw")}</a>
 </nav>
 {cta('../',name)}'''
  (OUT/'servicios'/f'{slug}.html').write_text(document(f'{name} en Los Garres, Murcia | Reformarvel',f'{tag} Servicio de {name.lower()} de Reformarvel Construcciones en Los Garres, Murcia. Pide presupuesto sin compromiso por WhatsApp.',page,'../',f'servicios/{slug}.html',slug,name,'service'),encoding='utf-8')
@@ -465,7 +461,7 @@ how=f'''<section class="p-hero">
   <p class="kicker">El método Reformarvel</p>
   <h1 class="p-title"><span class="line"><span>Cómo</span></span><span class="line"><span>trabajamos<em>.</em></span></span></h1>
   <p class="lead big">Una reforma bien hecha es una historia bien contada: un primer mensaje, una valoración honesta, un presupuesto claro y cada oficio en su momento. Así la llevamos de la idea al último remate.</p>
-  <div class="hero-actions"><a class="btn btn-wa btn-lg magnetic" href="{wa()}" data-wa target="_blank" rel="noopener">{WA_ICON}<span>Empezar por WhatsApp</span></a><a class="btn btn-ghost magnetic" href="#transformaciones">Ver transformaciones</a></div>
+  <div class="hero-actions"><a class="btn btn-wa btn-lg" href="{wa()}" data-wa target="_blank" rel="noopener">{WA_ICON}<span>Empezar por WhatsApp</span></a><a class="btn btn-ghost" href="#transformaciones">Ver transformaciones</a></div>
  </div>
  {compare(BEFORE_AFTER[2],'',True,True)}
 </section>
