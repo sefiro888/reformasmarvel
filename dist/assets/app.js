@@ -163,7 +163,7 @@
   const hero = $('[data-hero]');
   if (hero) {
     const slides = $$('.slide', hero), dots = $$('.hero-dot', hero);
-    const word = $('[data-now]'), tag = $('[data-now-tag]'), btnWord = $('[data-now-btn]'), btn = $('[data-hero-wa]');
+    const word = $('[data-now]'), tag = $('[data-now-tag]'), desc = $('[data-now-desc]'), tasks = $('[data-now-tasks]'), btnWord = $('[data-now-btn]'), btn = $('[data-hero-wa]');
     const DUR = 6500;
     let cur = 0, timer = null, paused = false;
     hero.style.setProperty('--dur', DUR + 'ms');
@@ -176,7 +176,9 @@
       slides[i].classList.add('is-active');
       dots.forEach((d, k) => { d.classList.toggle('is-active', k === i); d.classList.toggle('is-done', k < i); d.setAttribute('aria-current', k === i); });
       const s = slides[i];
-      swapText(word, s.dataset.topic); swapText(tag, s.dataset.tag);
+      swapText(word, s.dataset.topic); swapText(tag, s.dataset.tag); swapText(desc, s.dataset.desc);
+      tasks.innerHTML = s.dataset.tasks.split('|').map(t => `<li>${t}</li>`).join('');
+      tasks.classList.remove('swap'); void tasks.offsetWidth; tasks.classList.add('swap');
       btnWord.textContent = s.dataset.topic.toLowerCase();
       btn.href = waUrl(waText(s.dataset.topic.toLowerCase()));
       cur = i;
@@ -286,6 +288,10 @@
     if (el.matches('.ticks li, .stat, .svc-row, .faq-item')) el.style.transitionDelay = ((i % 6) * 70) + 'ms';
     io.observe(el);
   });
+
+  /* ---------- Bocadillos de las viñetas del proceso ---------- */
+  const sio = new IntersectionObserver(en => en.forEach(e => { if (e.isIntersecting) { setTimeout(() => e.target.classList.add('is-on'), 350); sio.unobserve(e.target); } }), { threshold: .55 });
+  $$('.chapter').forEach(c => sio.observe(c));
 
   /* ---------- Manifiesto que se ilumina al bajar ---------- */
   const scrub = $('[data-scrub]');
@@ -466,6 +472,41 @@
     update();
   });
 
+  /* ---------- Comparadores antes / después ---------- */
+  $$('[data-ba]').forEach(stage => {
+    const range = $('.ba-range', stage);
+    const set = v => { v = clamp(v, 0, 100); stage.style.setProperty('--pos', v + '%'); range.value = Math.round(v); };
+    const fromEvent = e => { const r = stage.getBoundingClientRect(); return (e.clientX - r.left) / r.width * 100; };
+    let drag = false;
+    stage.addEventListener('pointerdown', e => {
+      drag = true; stage.classList.add('is-drag'); stage.setPointerCapture(e.pointerId); set(fromEvent(e));
+      if (anim) anim = null;
+    });
+    stage.addEventListener('pointermove', e => { if (drag) set(fromEvent(e)); });
+    const end = () => { drag = false; stage.classList.remove('is-drag'); };
+    stage.addEventListener('pointerup', end);
+    stage.addEventListener('pointercancel', end);
+    range.addEventListener('input', () => set(+range.value));
+    // Pequeño vaivén la primera vez que aparece, para enseñar que se puede arrastrar
+    let anim = null;
+    if (!reduce) new IntersectionObserver((en, o) => {
+      if (!en[0].isIntersecting) return; o.disconnect();
+      const t0 = performance.now(); anim = true;
+      const tick = t => {
+        if (!anim) return;
+        const k = Math.min((t - t0) / 1800, 1);
+        set(50 + Math.sin(k * Math.PI * 2) * 22 * (1 - k));
+        if (k < 1) requestAnimationFrame(tick); else anim = null;
+      };
+      setTimeout(() => requestAnimationFrame(tick), 500);
+    }, { threshold: .6 }).observe(stage);
+  });
+  $$('[data-filter]').forEach(btn => btn.addEventListener('click', () => {
+    const f = btn.dataset.filter;
+    $$('[data-filter]').forEach(b => { b.classList.toggle('is-on', b === btn); b.setAttribute('aria-pressed', b === btn); });
+    $$('.ba-grid .ba').forEach(ba => ba.classList.toggle('is-hidden', f !== 'todos' && ba.dataset.cat !== f));
+  }));
+
   /* ---------- Galería con visor ---------- */
   const box = $('[data-lightbox-box]');
   const items = $$('[data-lightbox]');
@@ -497,6 +538,26 @@
   $$('.faq-item').forEach(d => d.addEventListener('toggle', () => { if (d.open) $$('.faq-item').forEach(o => { if (o !== d) o.open = false; }); }));
 
   if (reduce) return;
+
+  /* ---------- Onomatopeyas de cómic al pulsar ---------- */
+  const SFX = ['¡ZAS!', '¡PAM!', '¡BAM!', '¡TOC!', '¡CRAC!', '¡ZUM!', '¡CLAC!'];
+  const burst = '<svg class="burst" viewBox="0 0 200 200" aria-hidden="true"><path d="M100 4l14 40 36-24-8 42 44-4-32 30 40 22-44 8 22 38-40-18-6 44-26-36-26 36-6-44-40 18 22-38-44-8 40-22-32-30 44 4-8-42 36 24z"/></svg>';
+  let lastPow = 0;
+  document.addEventListener('pointerdown', e => {
+    if (!e.target.closest('.btn, .chip, .svc-wa, .round, .villain, .badge, .hero-dot') || performance.now() - lastPow < 250) return;
+    lastPow = performance.now();
+    const el = document.createElement('span');
+    el.className = 'pow'; el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = burst + `<b>${SFX[Math.floor(Math.random() * SFX.length)]}</b>`;
+    el.style.left = e.clientX + 'px'; el.style.top = e.clientY + 'px';
+    body.append(el);
+    const r = (Math.random() * 30 - 15).toFixed(0);
+    el.animate([
+      { transform: `translate(0,0) scale(.2) rotate(${r - 20}deg)`, opacity: 0 },
+      { transform: `translate(14px,-40px) scale(1.05) rotate(${r}deg)`, opacity: 1, offset: .3 },
+      { transform: `translate(22px,-70px) scale(.9) rotate(${+r + 6}deg)`, opacity: 0 }
+    ], { duration: 820, easing: 'cubic-bezier(.2,.8,.2,1)' }).onfinish = () => el.remove();
+  });
 
   /* ---------- Chispas de obra en la llamada final ---------- */
   $$('[data-sparks]').forEach(sec => {

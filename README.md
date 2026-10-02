@@ -1,6 +1,6 @@
 # Reformarvel Construcciones
 
-Web estática premium: portada, once páginas de servicio y dos plantillas legales pendientes de completar. Las imágenes son ilustrativas; no se atribuyen a obras reales ni se usan en comparadores de antes y después.
+Web estática premium: portada, «Cómo trabajamos», once páginas de servicio y dos plantillas legales pendientes de completar. Las imágenes son ilustrativas y no se atribuyen a obras reales; los comparadores de antes y después lo indican expresamente.
 
 ## Previsualizar
 
@@ -19,6 +19,8 @@ Publicada en https://sefiro888.github.io/reformasmarvel/ (GitHub Pages publica `
 - Petición a medida por WhatsApp: en la portada eliges oficios; en cada servicio, opciones propias de ese oficio. El mensaje se escribe en directo en un móvil simulado y se abre WhatsApp con todo preparado. No hay formularios por correo ni envíos desde la web.
 - Botones de WhatsApp con el servicio ya escrito en la lista de oficios, la cabecera, el botón flotante y las llamadas finales.
 - Scroll suave (Lenis), cursor propio, botones magnéticos, inclinación 3D, imagen que sigue al ratón en la lista de oficios, rótulos que reaccionan a la velocidad del scroll, manifiesto que se ilumina al bajar, proceso en recorrido horizontal, galería con parallax y visor, chispas interactivas, nivel de burbuja en la portada.
+- Estética de cómic de creación propia (sin personajes, logos ni nombres de Marvel): sección «Toda casa tiene sus villanos», «superpoderes» de cada oficio, viñetas con bocadillos en el proceso, tramas de puntos y onomatopeyas al pulsar botones. El pie aclara que la empresa no tiene relación con Marvel ni con Disney.
+- Página «Cómo trabajamos» (`como-trabajamos.html`): método en cuatro capítulos y diez comparadores de antes y después para arrastrar (ratón, dedo o teclado), con filtros por tipo de espacio. Los originales dobles se recortan por la mitad en `build.py`.
 - Respeta `prefers-reduced-motion` y funciona en móvil (comprobado a 320, 375, 768, 1024 y 1440 px).
 
 ## Editar

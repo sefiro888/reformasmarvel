@@ -26,6 +26,12 @@ SERVICES=[
  ('impermeabilizaciones','Impermeabilizaciones','Proteger el espacio desde su origen.','Instalación de lámina impermeabilizante-10.png','Reparación profesional de grieta en fachada-8.png','Cuando aparece agua o humedad, el primer paso es entender su origen. La impermeabilización se plantea según el soporte, la zona afectada y las condiciones de uso.','Valoración de zonas con filtraciones|Preparación del soporte|Trabajos de impermeabilización','Explica cuándo aparece la humedad y qué zona afecta. Las fotografías orientan la primera conversación; la solución requiere valorar la causa y el estado del soporte.','Terraza|Cubierta|Humedad en paredes|Filtraciones|Baño o ducha'),
 ]
 BY_SLUG={s[0]:s for s in SERVICES}
+POWERS={'albanileria':'Levantar, abrir y dar forma a los espacios.','electricidad':'Llevar la luz y la energía justo donde hacen falta.','fontaneria':'Que el agua vaya siempre por donde debe.','alicatado':'Alinear cada pieza al milímetro.','carpinteria':'Ajustar la madera hasta que encaje.','pintura':'Cambiar la luz y el ánimo de una estancia.','enyesado':'Dejar las paredes listas para lucir.','desescombro':'Despejar la obra para que todo avance.','reparacion-fachadas':'Devolverle la cara a tu fachada.','tarima-flotante':'Renovar el suelo que pisas cada día.','impermeabilizaciones':'Plantar cara a humedades y filtraciones.'}
+VILLAINS=[('La Humedad','Aparece en paredes y techos, mancha, huele y siempre vuelve. Para vencerla hay que encontrar su origen.','impermeabilizaciones','¡PLAF!'),('La Grieta','Empieza fina y va ganando terreno en fachadas y paredes. Conviene revisar el soporte antes de tapar.','reparacion-fachadas','¡CRAC!'),('El Apagón','Enchufes que no llegan, luces que fallan y regletas por todas partes. Una instalación que se quedó pequeña.','electricidad','¡ZZZT!'),('La Gotera','Un goteo bajo el fregadero que nadie ve… hasta que se ve. Tomas y desagües que piden revisión.','fontaneria','¡PLIC!'),('El Azulejo Rebelde','Suelto, roto o pasado de moda. Un baño o una cocina entera pendientes de él.','alicatado','¡CLONC!'),('El Escombro','Se acumula durante la obra y no deja avanzar. Volumen, accesos y retirada, bien organizados.','desescombro','¡BRRUM!')]
+BURST='<svg class="burst" viewBox="0 0 200 200" aria-hidden="true"><path d="M100 4l14 40 36-24-8 42 44-4-32 30 40 22-44 8 22 38-40-18-6 44-26-36-26 36-6-44-40 18 22-38-44-8 40-22-32-30 44 4-8-42 36 24z"/></svg>'
+def first_sentence(t):
+ return t.split('. ')[0].rstrip('.')+'.'
+
 
 ICONS={
  'albanileria':'<path d="M3 5h18v14H3zM3 9.7h18M3 14.3h18M8 5v4.7M16 5v4.7M12 9.7v4.6M5 9.7v4.6M19 9.7v4.6M8 14.3V19M16 14.3V19"/>',
@@ -88,6 +94,48 @@ og.icons(ASSETS)
 (ASSETS/'site.webmanifest').write_text(json.dumps({'name':C['company'],'short_name':'Reformarvel','start_url':'../index.html','display':'standalone','background_color':'#0b0b0e','theme_color':'#0b0b0e','icons':[{'src':'icon-192.png','sizes':'192x192','type':'image/png'},{'src':'icon-512.png','sizes':'512x512','type':'image/png'}]},ensure_ascii=False),encoding='utf-8')
 (OUT/'.nojekyll').write_text('',encoding='utf-8')
 
+# Antes y después: cada original une las dos fotos (izquierda antes, derecha después)
+BEFORE_AFTER=[
+ ('bano-completo','Antes y después_ baño renovado-2.png','Baño completo','banos','fontaneria','Sanitarios, revestimientos, mampara y mueble nuevos: el mismo espacio con otra luz.'),
+ ('cuadro-electrico','Antes y después del cuadro eléctrico-1.png','Cuadro eléctrico','instalaciones','electricidad','De un cableado a la vista y un cuadro antiguo a una instalación ordenada y protegida.'),
+ ('salon','Salón antes y después de reformar-7.png','Salón','interiores','pintura','Paredes saneadas, pintura y luz natural: el salón recupera su calidez.'),
+ ('fachada','Fachada renovada_ antes y después-9.png','Fachada','exterior','reparacion-fachadas','Reparación de superficies deterioradas y acabado exterior de toda la fachada.'),
+ ('suelo','Antes y después_ reforma de suelo-10.png','Suelo y paredes','interiores','tarima-flotante','De un suelo dañado por la humedad a una estancia luminosa con tarima.'),
+ ('bano-alicatado','Antes y después_ baño renovado-4.png','Baño alicatado','banos','alicatado','Revestimiento nuevo y sanitarios actualizados con la misma distribución.'),
+ ('carpinteria','Antes y después_ carpintería renovada-5.png','Puertas y armario','interiores','carpinteria','Puertas y frentes de armario renovados en madera clara.'),
+ ('habitacion','Antes y después_ pared restaurada-3.png','Habitación restaurada','interiores','enyesado','Paredes reparadas, techo saneado y suelo nuevo para una habitación lista para vivir.'),
+ ('pared','Pared renovada_ antes y después-6.png','Pared renovada','interiores','enyesado','Una pared desconchada, preparada, enlucida y pintada.'),
+ ('escombros','De escombros a habitación despejada-8.png','De escombros a espacio limpio','interiores','desescombro','Retirada de escombro para dejar la estancia despejada y lista para seguir.'),
+]
+BA_FILTERS=[('todos','Todos'),('banos','Baños'),('interiores','Interiores'),('instalaciones','Instalaciones'),('exterior','Exterior')]
+def split_ba(slug,source):
+ src=ROOT/source
+ if not src.exists():src=ROOT.parent.parent.parent/source
+ if not src.exists():
+  if (ASSETS/f'ba-{slug}-antes-1000.webp').exists():return
+  raise FileNotFoundError(source)
+ im=Image.open(src).convert('RGB');w,h=im.size
+ for side,box in (('antes',(0,0,w//2,h)),('despues',(w//2,0,w,h))):
+  half=im.crop(box)
+  for width in (520,1000):
+   v=half.copy();v.thumbnail((width,2000));v.save(ASSETS/f'ba-{slug}-{side}-{width}.webp','WEBP',quality=84)
+for b in BEFORE_AFTER:split_ba(b[0],b[1])
+
+def compare(b,base='',big=False,eager=False):
+ slug,_,title,cat,svc,text=b
+ sizes='(max-width: 700px) 100vw, 60vw' if big else '(max-width: 700px) 100vw, 33vw'
+ img=lambda side,alt:f'<img src="{base}assets/ba-{slug}-{side}-1000.webp" srcset="{base}assets/ba-{slug}-{side}-520.webp 520w, {base}assets/ba-{slug}-{side}-1000.webp 1000w" sizes="{sizes}" width="768" height="1024" alt="{esc(alt)}" {"" if eager else "loading=lazy"} decoding="async">'
+ return f'''<figure class="ba{" ba-big" if big else ""}" data-cat="{cat}">
+ <div class="ba-stage" data-ba data-cursor="Arrastra">
+  <div class="ba-after">{img("despues",title+": después (imagen ilustrativa)")}</div>
+  <div class="ba-before">{img("antes",title+": antes (imagen ilustrativa)")}</div>
+  <span class="ba-label ba-l">Antes</span><span class="ba-label ba-r">Después</span>
+  <span class="ba-handle" aria-hidden="true"><span class="ba-knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6"/></svg></span></span>
+  <input class="ba-range" type="range" min="0" max="100" value="50" aria-label="Comparar antes y después: {esc(title)}">
+ </div>
+ <figcaption><span class="ba-svc">{icon(svc)}{BY_SLUG[svc][1]}</span><b>{title}</b><span>{text}</span></figcaption>
+</figure>'''
+
 def image(name,alt,base='',eager=False,cls='',sizes='(max-width: 700px) 100vw, 60vw',big=False):
  has2000=(ASSETS/f'{name}-2000.webp').exists()
  srcset=f'{base}assets/{name}-640.webp 640w, {base}assets/{name}-1400.webp 1400w'+(f', {base}assets/{name}-2000.webp 2000w' if has2000 and big else '')
@@ -112,7 +160,7 @@ def header(base,current=''):
     </div>
    </div>
   </div>
-  <a class="nav-link" href="{base}index.html#proceso">Cómo trabajamos</a>
+  <a class="nav-link" href="{base}como-trabajamos.html"{" aria-current=page" if current=="como-trabajamos" else ""}>Cómo trabajamos</a>
   <a class="nav-link" href="{base}index.html#tu-peticion">Tu petición</a>
   <a class="nav-link" href="{base}index.html#preguntas">Preguntas</a>
  </nav>
@@ -124,7 +172,7 @@ def header(base,current=''):
   <p class="kicker">Servicios</p>
   <ul class="menu-list">{links}</ul>
   <div class="menu-foot">
-   <a href="{base}index.html#proceso">Cómo trabajamos</a><a href="{base}index.html#tu-peticion">Tu petición</a><a href="{base}index.html#preguntas">Preguntas</a>
+   <a href="{base}como-trabajamos.html">Cómo trabajamos</a><a href="{base}index.html#tu-peticion">Tu petición</a><a href="{base}index.html#preguntas">Preguntas</a>
    <a class="btn btn-wa" href="{wa()}" data-wa target="_blank" rel="noopener">{WA_ICON}<span>Escríbenos por WhatsApp</span></a>
   </div>
  </div>
@@ -163,7 +211,7 @@ def footer(base):
   </ul></div>
  </div>
  <p class="footer-word" aria-hidden="true">REFORMARVEL</p>
- <div class="footer-bottom"><span>© Reformarvel Construcciones</span><span>Imágenes ilustrativas: no documentan obras realizadas.</span><a href="{base}aviso-legal.html">Aviso legal</a><a href="{base}privacidad.html">Privacidad</a></div>
+ <div class="footer-bottom"><span>© Reformarvel Construcciones</span><span>Imágenes ilustrativas: no documentan obras realizadas.</span><span>Empresa independiente, sin relación con Marvel ni con The Walt Disney Company. Estética de cómic de creación propia.</span><a href="{base}aviso-legal.html">Aviso legal</a><a href="{base}privacidad.html">Privacidad</a></div>
 </footer>
 <a class="wa-float" href="{wa()}" data-wa target="_blank" rel="noopener" aria-label="Escribir por WhatsApp"><span class="wa-bubble" data-wa-bubble>¿Hablamos de tu reforma?</span>{WA_ICON}</a>
 <div class="cursor" aria-hidden="true"><span class="cursor-dot"></span><span class="cursor-ring"><b class="cursor-label"></b></span></div>
@@ -254,16 +302,23 @@ def builder(service=None):
 
 # ---------- Portada ----------
 HERO=['albanileria','alicatado','electricidad','pintura','tarima-flotante','reparacion-fachadas']
-slides=''.join(f'<div class="slide{" is-active" if i==0 else ""}" data-slide="{i}" data-topic="{esc(BY_SLUG[k][1])}" data-tag="{esc(BY_SLUG[k][2])}" data-href="servicios/{k}.html">{image(k,"Imagen ilustrativa: "+BY_SLUG[k][1].lower(),"",i==0,"",'100vw',True)}</div>' for i,k in enumerate(HERO))
+slides=''.join(f'<div class="slide{" is-active" if i==0 else ""}" data-slide="{i}" data-topic="{esc(BY_SLUG[k][1])}" data-tag="{esc(BY_SLUG[k][2])}" data-desc="{esc(first_sentence(BY_SLUG[k][5]))}" data-tasks="{esc(BY_SLUG[k][6])}" data-href="servicios/{k}.html">{image(k,"Imagen ilustrativa: "+BY_SLUG[k][1].lower(),"",i==0,"",'100vw',True)}</div>' for i,k in enumerate(HERO))
 dots=''.join(f'<button type="button" class="hero-dot{" is-active" if i==0 else ""}" data-go="{i}" aria-label="Ver {esc(BY_SLUG[k][1])}"><span class="hd-n">{i+1:02}</span><span class="hd-t">{BY_SLUG[k][1]}</span><span class="hd-bar"><i></i></span></button>' for i,k in enumerate(HERO))
 first=BY_SLUG[HERO[0]]
 svc_rows=''.join(f'''<li class="svc-row reveal" data-preview="{i}">
- <a class="svc-link" href="servicios/{s[0]}.html" data-cursor="Ver"><span class="svc-n">{i+1:02}</span><span class="svc-name">{s[1]}</span><span class="svc-tag">{s[2]}</span><span class="svc-thumb">{image(s[0],'Imagen ilustrativa: '+s[1].lower(),'',False,'','160px')}</span>{ARROW}</a>
+ <a class="svc-link" href="servicios/{s[0]}.html" data-cursor="Ver"><span class="svc-n">{i+1:02}</span><span class="svc-main"><span class="svc-name">{s[1]}</span><span class="svc-power"><b>Superpoder:</b> {POWERS[s[0]]}</span><span class="svc-more"><span><span class="svc-desc">{first_sentence(s[5])}</span><span class="svc-tasks">{''.join('<i>'+t+'</i>' for t in s[6].split('|'))}</span></span></span></span><span class="svc-tag">{s[2]}</span><span class="svc-thumb">{image(s[0],'Imagen ilustrativa: '+s[1].lower(),'',False,'','160px')}</span>{ARROW}</a>
  <a class="svc-wa" href="{wa(s[1].lower())}" data-wa="{esc(s[1].lower())}" target="_blank" rel="noopener" aria-label="Pedir presupuesto de {esc(s[1].lower())} por WhatsApp">{WA_ICON}</a>
 </li>''' for i,s in enumerate(SERVICES))
+villains=''.join(f'''<a class="villain reveal tilt" href="servicios/{slug}.html" data-cursor="Al rescate">
+ <span class="v-sfx">{BURST}<b>{sfx}</b></span>
+ <span class="v-tag">Villano nº {i+1:02}</span>
+ <h3 class="v-name">{name}</h3>
+ <p>{text}</p>
+ <span class="v-hero">{icon(slug)}<span><small>Lo vence</small>{BY_SLUG[slug][1]}</span>{ARROW}</span>
+</a>''' for i,(name,text,slug,sfx) in enumerate(VILLAINS))
 float_imgs=''.join(f'<img src="assets/{s[0]}-640.webp" alt="" width="640" height="427" loading="lazy" data-i="{i}">' for i,s in enumerate(SERVICES))
-STEPS=[('Nos escribes','Por WhatsApp, desde cualquier servicio. Cuéntanos qué quieres cambiar y adjunta fotos del espacio.','pintura-detail'),('Valoramos','Estudiamos el espacio, las medidas y el estado de las instalaciones para definir el alcance del trabajo.','electricidad-detail'),('Presupuesto claro','Trabajos, materiales y condiciones se concretan antes de empezar. Sin compromiso por pedirlo.','alicatado-detail'),('Manos a la obra','Cada oficio entra en su momento y cuidamos la ejecución hasta el último remate.','carpinteria-detail')]
-steps=''.join(f'<article class="chapter"><div class="chapter-img">{image(img,"Imagen ilustrativa del paso: "+t.lower(),"",False,"","(max-width: 900px) 90vw, 40vw")}</div><div class="chapter-copy"><span class="chapter-n">0{i+1}</span><h3>{t}</h3><p>{d}</p></div></article>' for i,(t,d,img) in enumerate(STEPS))
+STEPS=[('Nos escribes','Por WhatsApp, desde cualquier servicio de la web. Cuéntanos qué quieres cambiar, adjunta fotos o vídeos del espacio y, si las tienes, medidas aproximadas. Con eso ya podemos empezar a hablar.','pintura-detail','¡Hola! Quiero renovar el baño. Os mando fotos 📸'),('Valoramos','Estudiamos el espacio, las medidas y el estado de las instalaciones. Así definimos qué oficios hacen falta, en qué orden y qué conviene revisar antes de tapar nada.','electricidad-detail','Medidas tomadas. Vamos a ver qué necesita…'),('Presupuesto claro','Trabajos, materiales y condiciones se concretan por escrito antes de empezar, para que sepas qué incluye cada parte. Pedirlo no te compromete a nada.','alicatado-detail','Todo por escrito, sin sorpresas.'),('Manos a la obra','Cada oficio entra en su momento: primero lo que no se ve, después los acabados. Cuidamos la ejecución hasta el último remate.','carpinteria-detail','Último remate… ¡misión cumplida!')]
+steps=''.join(f'<article class="chapter"><div class="chapter-img">{image(img,"Imagen ilustrativa del paso: "+t.lower(),"",False,"","(max-width: 900px) 90vw, 40vw")}<span class="panel-tag">Capítulo {i+1}</span><span class="speech">{b}</span></div><div class="chapter-copy"><span class="chapter-n">0{i+1}</span><h3>{t}</h3><p>{d}</p></div></article>' for i,(t,d,img,b) in enumerate(STEPS))
 GALLERY=[('alicatado','Texturas y precisión'),('tarima-flotante','La calidez del suelo'),('pintura','Luz y acabados'),('reparacion-fachadas','Del interior al exterior'),('fontaneria-detail','Lo que no se ve'),('carpinteria','Madera y ajuste')]
 gallery=''.join(f'<figure class="g-item g{i+1} reveal-img" data-lightbox="{i}"><div class="g-media" data-parallax>{image(k,"Imagen ilustrativa: "+t.lower(),"",False,"","(max-width: 700px) 100vw, 50vw",True)}</div><figcaption><span>{t}</span></figcaption></figure>' for i,(k,t) in enumerate(GALLERY))
 FAQ=[('¿Cómo pido presupuesto?','Por WhatsApp. Desde cada servicio, el mensaje se prepara con lo que necesitas; tú solo lo envías. Si tienes fotos o medidas, adjúntalas en el mismo chat.'),('¿Hacéis trabajos pequeños?','Sí. Desde un cambio pequeño hasta una reforma a gran escala: una pared, un baño, un suelo o la casa entera.'),('¿Pedir presupuesto me compromete a algo?','No. El presupuesto es sin compromiso. Trabajos, materiales y condiciones se concretan antes de empezar.'),('¿Qué información conviene enviar?','Fotos del espacio, medidas aproximadas, qué quieres cambiar y cuándo te gustaría empezar. Cuanto más contexto, más fácil es valorar el trabajo.'),('¿Dónde estáis?','En Los Garres, Murcia. Si tu obra está en otra zona, pregúntanos por WhatsApp.')]
@@ -277,6 +332,8 @@ home=f'''<section class="hero" data-hero>
   <p class="kicker hero-kicker"><span class="pulse" aria-hidden="true"></span>Reformas y construcción · Los Garres, Murcia</p>
   <h1 class="hero-title"><span class="line"><span>Tu casa,</span></span><span class="line"><span>a otro <em>nivel.</em></span></span></h1>
   <div class="hero-now"><span class="now-label">Ahora:</span><span class="now-word" data-now>{first[1]}</span><span class="now-tag" data-now-tag>{first[2]}</span></div>
+  <p class="now-desc" data-now-desc>{first_sentence(first[5])}</p>
+  <ul class="now-tasks" data-now-tasks>{''.join('<li>'+t+'</li>' for t in first[6].split('|'))}</ul>
   <div class="hero-actions">
    <a class="btn btn-wa btn-lg magnetic" href="{wa(first[1].lower())}" data-hero-wa target="_blank" rel="noopener">{WA_ICON}<span>Pedir presupuesto de <b data-now-btn>{first[1].lower()}</b></span></a>
    <a class="btn btn-ghost magnetic" href="#servicios">Ver los 11 oficios</a>
@@ -289,27 +346,41 @@ home=f'''<section class="hero" data-hero>
   <div class="hero-arrows"><button type="button" class="round" data-prev aria-label="Anterior">{ARROW}</button><button type="button" class="round" data-next aria-label="Siguiente">{ARROW}</button></div>
  </div>
  <p class="hero-note">Imágenes ilustrativas</p>
+ <div class="halftone ht-hero" aria-hidden="true"></div>
 </section>
 {marquee('')}
 <section class="manifesto">
- <p class="kicker reveal">Un espacio, muchos oficios</p>
+ <p class="kicker reveal">Toda casa tiene su historia de origen</p>
  <p class="manifesto-text" data-scrub>Un baño, una pared, un suelo o la casa entera. En una reforma se cruzan muchos oficios: en Reformarvel los reunimos para que tu idea avance con un mismo equipo, <em>de la base al acabado.</em></p>
+ <div class="manifesto-cols">
+  <p class="reveal">Una reforma rara vez es un solo trabajo. Cambiar un baño implica fontanería, electricidad, alicatado y remates; renovar un salón puede pedir yeso, pintura y un suelo nuevo. Cuando cada oficio va por su lado, la obra se alarga y los detalles se pierden.</p>
+  <p class="reveal">Por eso planteamos cada reforma como una sola historia: escuchamos lo que quieres, valoramos el espacio y coordinamos los oficios necesarios para que cada uno entre en su momento. Tú hablas con un equipo; nosotros nos ocupamos del orden.</p>
+ </div>
  <div class="stats">
   <div class="stat reveal"><b data-count="11">11</b><span>oficios bajo<br>un mismo nombre</span></div>
   <div class="stat reveal"><b data-count="1">1</b><span>chat de WhatsApp<br>para pedirlo todo</span></div>
   <div class="stat reveal"><b>0</b><span>compromiso al<br>pedir presupuesto</span></div>
  </div>
 </section>
+<section class="villains">
+ <div class="halftone ht-villains" aria-hidden="true"></div>
+ <div class="section-head"><p class="kicker reveal">Atención, vecinos</p><h2 class="split">Toda casa tiene<br><em>sus villanos.</em></h2><p class="lead reveal">Humedades que vuelven, grietas que crecen, enchufes que no llegan. Cada problema de una casa tiene un oficio capaz de plantarle cara. Elige a tu villano y te contamos cómo lo afrontamos.</p></div>
+ <div class="v-grid">{villains}</div>
+</section>
 <section class="services" id="servicios">
- <div class="section-head"><p class="kicker reveal">01 — Los oficios</p><h2 class="split">Cada cambio,<br><em>su oficio.</em></h2><p class="lead reveal">Pasa por cada servicio para verlo. Entra para conocerlo o pulsa el icono de WhatsApp: el mensaje ya llega con el servicio escrito.</p></div>
+ <div class="section-head"><p class="kicker reveal">01 — Los oficios</p><h2 class="split">Once oficios,<br><em>once superpoderes.</em></h2><p class="lead reveal">Cada oficio resuelve una parte de tu reforma. Pasa por encima para ver qué hace cada uno, entra para conocerlo a fondo o pulsa el icono de WhatsApp: el mensaje llega con el servicio ya escrito.</p></div>
  <ul class="svc-list" data-svc-list>{svc_rows}</ul>
  <div class="svc-float" aria-hidden="true" data-svc-float>{float_imgs}</div>
 </section>
 <section class="process" id="proceso" data-pin>
  <div class="pin-sticky">
-  <div class="process-head"><p class="kicker">02 — Cómo trabajamos</p><h2>Tu reforma,<br><em>en cuatro capítulos.</em></h2><div class="pin-progress"><i></i></div></div>
+  <div class="process-head"><p class="kicker">02 — Cómo trabajamos</p><h2>Tu reforma,<br><em>en cuatro capítulos.</em></h2><div class="pin-progress"><i></i></div><a class="process-more" href="como-trabajamos.html">Ver el método completo {ARROW}</a></div>
   <div class="pin-view"><div class="pin-track" data-pin-track>{steps}</div></div>
  </div>
+</section>
+<section class="teaser">
+ <div class="teaser-copy"><p class="kicker reveal">La transformación</p><h2 class="split">Arrastra y mira<br><em>el cambio.</em></h2><p class="lead reveal">Desliza el control para pasar del antes al después. En la página de cómo trabajamos tienes diez transformaciones más, explicadas oficio por oficio.</p><a class="btn btn-red magnetic reveal" href="como-trabajamos.html">Ver cómo trabajamos {ARROW}</a><p class="ba-note reveal">Imágenes ilustrativas: muestran el tipo de cambio, no obras realizadas por Reformarvel.</p></div>
+ {compare(BEFORE_AFTER[0],'',True)}
 </section>
 {builder()}
 <section class="gallery" id="galeria">
@@ -370,6 +441,55 @@ for index,s in enumerate(SERVICES):
 </nav>
 {cta('../',name)}'''
  (OUT/'servicios'/f'{slug}.html').write_text(document(f'{name} en Los Garres, Murcia | Reformarvel',f'{tag} Servicio de {name.lower()} de Reformarvel Construcciones en Los Garres, Murcia. Pide presupuesto sin compromiso por WhatsApp.',page,'../',f'servicios/{slug}.html',slug,name,'service'),encoding='utf-8')
+
+
+# ---------- Cómo trabajamos ----------
+METHOD=[
+ ('Nos escribes','Todo empieza con un mensaje de WhatsApp. Desde cualquier servicio de la web el mensaje se prepara con lo que necesitas, y en el mismo chat puedes adjuntar fotos y vídeos del espacio.',['Qué quieres cambiar y para qué lo usas','Fotos o vídeos del espacio','Medidas aproximadas, si las tienes','Cuándo te gustaría empezar'],'pintura-detail','¡Hola! Quiero renovar el baño. Os mando fotos 📸'),
+ ('Valoramos el espacio','Con la información que nos envías estudiamos el espacio, las medidas y el estado de las instalaciones. Así sabemos qué oficios hacen falta y qué conviene revisar antes de tapar nada.',['Estado del soporte: paredes, suelos, fachada','Instalaciones de agua y electricidad','Accesos y retirada de escombro','Orden en que entra cada oficio'],'electricidad-detail','Medidas tomadas. Vamos a ver qué necesita…'),
+ ('Presupuesto claro','Trabajos, materiales y condiciones se concretan por escrito antes de empezar, para que sepas qué incluye cada parte. Pedir presupuesto no te compromete a nada.',['Trabajos detallados por oficio','Materiales y acabados','Condiciones antes de empezar','Sin compromiso por pedirlo'],'alicatado-detail','Todo por escrito, sin sorpresas.'),
+ ('Manos a la obra','Cada oficio entra en su momento: primero lo que no se ve, después los acabados. Cuidamos la ejecución hasta el último remate y te mantenemos al tanto por el mismo chat.',['Primero instalaciones y soporte','Después revestimientos y acabados','Remates y encuentros cuidados','Seguimiento por WhatsApp'],'carpinteria-detail','Último remate… ¡misión cumplida!'),
+]
+method=''.join(f'''<article class="m-step">
+ <div class="m-panel reveal"><div class="g-media" data-parallax>{image(img,"Imagen ilustrativa: "+t.lower(),"",False,"","(max-width: 900px) 100vw, 45vw")}</div><span class="panel-tag">Capítulo {i+1}</span><span class="speech is-static">{bubble}</span></div>
+ <div class="m-copy"><span class="chapter-n">0{i+1}</span><h3 class="split">{t}</h3><p class="lead reveal">{d}</p><ul class="ticks">{''.join('<li class="reveal"><span class="tick" aria-hidden="true"></span>'+x+'</li>' for x in items)}</ul></div>
+</article>''' for i,(t,d,items,img,bubble) in enumerate(METHOD))
+filters=''.join(f'<button type="button" class="chip{" is-on" if k=="todos" else ""}" data-filter="{k}" aria-pressed="{"true" if k=="todos" else "false"}"><span>{n}</span></button>' for k,n in BA_FILTERS)
+ba_grid=''.join(compare(b) for k,b in enumerate(BEFORE_AFTER) if k!=2)
+PROMISES=[('Un solo chat','Pides, envías fotos, resuelves dudas y sigues la obra en la misma conversación de WhatsApp.'),('Todo por escrito','Trabajos, materiales y condiciones quedan concretados antes de empezar.'),('Oficios coordinados','Cada oficio entra en su momento para que la obra avance en orden.'),('Del pequeño cambio a la reforma completa','Una pared, un baño, un suelo o la casa entera.')]
+promises=''.join(f'<div class="promise reveal"><span class="promise-n">0{i+1}</span><h3>{t}</h3><p>{d}</p></div>' for i,(t,d) in enumerate(PROMISES))
+how=f'''<section class="p-hero">
+ <div class="halftone ht-villains" aria-hidden="true"></div>
+ <div class="p-hero-in">
+  <nav class="crumbs" aria-label="Ruta"><a href="index.html">Inicio</a><span>/</span><span aria-current="page">Cómo trabajamos</span></nav>
+  <p class="kicker">El método Reformarvel</p>
+  <h1 class="p-title"><span class="line"><span>Cómo</span></span><span class="line"><span>trabajamos<em>.</em></span></span></h1>
+  <p class="lead big">Una reforma bien hecha es una historia bien contada: un primer mensaje, una valoración honesta, un presupuesto claro y cada oficio en su momento. Así la llevamos de la idea al último remate.</p>
+  <div class="hero-actions"><a class="btn btn-wa btn-lg magnetic" href="{wa()}" data-wa target="_blank" rel="noopener">{WA_ICON}<span>Empezar por WhatsApp</span></a><a class="btn btn-ghost magnetic" href="#transformaciones">Ver transformaciones</a></div>
+ </div>
+ {compare(BEFORE_AFTER[2],'',True,True)}
+</section>
+{marquee('')}
+<section class="method" id="metodo">
+ <div class="section-head"><p class="kicker reveal">01 — El método</p><h2 class="split">Cuatro capítulos,<br><em>una sola historia.</em></h2><p class="lead reveal">Esto es lo que pasa desde que nos escribes hasta que la obra queda terminada, y lo que conviene tener a mano en cada momento.</p></div>
+ {method}
+</section>
+<section class="transform" id="transformaciones">
+ <div class="section-head"><p class="kicker reveal">02 — Transformaciones</p><h2 class="split">Arrastra y mira<br><em>la transformación.</em></h2><p class="lead reveal">Desliza cada imagen para pasar del antes al después. Filtra por tipo de espacio y pulsa el oficio para ver cómo lo trabajamos.</p></div>
+ <div class="ba-filters chips" role="group" aria-label="Filtrar transformaciones">{filters}</div>
+ <div class="ba-grid">{ba_grid}</div>
+ <p class="ba-note">Imágenes ilustrativas: muestran el tipo de cambio que se consigue con cada oficio, no obras realizadas por Reformarvel.</p>
+</section>
+<section class="promises">
+ <div class="section-head"><p class="kicker reveal">03 — Lo que puedes esperar</p><h2 class="split">Las reglas<br><em>de la casa.</em></h2></div>
+ <div class="promise-grid">{promises}</div>
+</section>
+{builder()}
+{cta('')}'''
+ogsrc=Image.new('RGB',(1536,1024))
+for k,side in enumerate(('antes','despues')):ogsrc.paste(Image.open(ASSETS/f'ba-salon-{side}-1000.webp').convert('RGB').resize((768,1024)),(k*768,0))
+ogsrc.save(ASSETS/'og'/'_salon.webp');og.card(ASSETS/'og'/'_salon.webp',['Cómo trabajamos'],'Del primer mensaje al último remate.','El método Reformarvel',LOGO,ASSETS/'og'/'como-trabajamos.jpg');(ASSETS/'og'/'_salon.webp').unlink()
+(OUT/'como-trabajamos.html').write_text(document('Cómo trabajamos | Reformarvel Construcciones','Así trabaja Reformarvel en Los Garres, Murcia: del primer WhatsApp al último remate en cuatro capítulos. Mira transformaciones de antes y después.',how,'','como-trabajamos.html','como-trabajamos','','how'),encoding='utf-8')
 
 # ---------- Legales ----------
 for slug,title in [('aviso-legal','Aviso legal'),('privacidad','Privacidad')]:
