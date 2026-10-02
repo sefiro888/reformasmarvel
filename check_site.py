@@ -14,7 +14,7 @@ class Page(HTMLParser):
   if tag=='h1':self.h1+=1
   if tag=='title':self.title=True
   if tag=='meta' and a.get('name')=='description':self.desc=a.get('content')
-  if tag=='img' and not a.get('alt'):self.errors.append('Missing image alt')
+  if tag=='img' and 'alt' not in a:self.errors.append('Missing image alt')
   for key in ('href','src'):
    if a.get(key):self.refs.append(a[key])
   if a.get('srcset'):
