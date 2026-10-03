@@ -10,6 +10,7 @@ ASSETS.mkdir(parents=True,exist_ok=True)
 C=json.loads((ROOT/'contact-config.json').read_text(encoding='utf-8'))
 WA_NUMBER=C['whatsapp_e164'].lstrip('+')
 esc=html.escape
+OG_V='v2'  # cambiar al rediseñar las imágenes de compartir, para que WhatsApp no use las antiguas
 
 # slug, nombre, lema, foto, detalle, descripción, tareas, cómo preparar, opciones de la petición por WhatsApp
 SERVICES=[
@@ -87,9 +88,9 @@ shutil.copytree(ROOT/'fonts',ASSETS/'fonts',dirs_exist_ok=True)
 import og
 (ASSETS/'og').mkdir(exist_ok=True)
 LOGO=ROOT/'brand'/'logo-transparent.webp'
-og.card(ASSETS/'albanileria-2000.webp',['Tu casa,','a otro'],'nivel.','Reformas y construcción',LOGO,ASSETS/'og'/'reformarvel.jpg')
+og.card(ASSETS/'albanileria-2000.webp',['Tu casa,','a otro'],'nivel.','Reformas y construcción',LOGO,ASSETS/'og'/f'reformarvel-{OG_V}.jpg')
 for n,s_ in enumerate(SERVICES,1):
- og.card(ASSETS/f'{s_[0]}-2000.webp',[s_[1]],s_[2],f'Servicio {n:02} / {len(SERVICES)}',LOGO,ASSETS/'og'/f'{s_[0]}.jpg')
+ og.card(ASSETS/f'{s_[0]}-2000.webp',[s_[1]],s_[2],f'Servicio {n:02} / {len(SERVICES)}',LOGO,ASSETS/'og'/f'{s_[0]}-{OG_V}.jpg')
 og.icons(ASSETS)
 (ASSETS/'site.webmanifest').write_text(json.dumps({'name':C['company'],'short_name':'Reformarvel','start_url':'../index.html','display':'standalone','background_color':'#0b0b0e','theme_color':'#0b0b0e','icons':[{'src':'icon-192.png','sizes':'192x192','type':'image/png'},{'src':'icon-512.png','sizes':'512x512','type':'image/png'}]},ensure_ascii=False),encoding='utf-8')
 (OUT/'.nojekyll').write_text('',encoding='utf-8')
@@ -216,9 +217,9 @@ def footer(base):
 <a class="wa-float" href="{wa()}" data-wa target="_blank" rel="noopener" aria-label="Escribir por WhatsApp"><span class="wa-bubble" data-wa-bubble>¿Hablamos de tu reforma?</span>{WA_ICON}</a>
 <div class="veil" aria-hidden="true"><span class="veil-mark">R</span></div>'''
 
-def document(title,desc,body,base='',path='index.html',current='',topic='',page='home'):
+def document(title,desc,body,base='',path='index.html',current='',topic='',page='home',share_title='',share_desc=''):
  url=C['origin']+'/'+(path if path!='index.html' else '')
- og_name=current or 'reformarvel'
+ og_name=(current or 'reformarvel')+'-'+OG_V
  og_alt=f'Reformarvel Construcciones · {topic}' if topic else 'Reformarvel Construcciones · Tu casa, a otro nivel'
  structured=json.dumps({'@context':'https://schema.org','@type':'HomeAndConstructionBusiness','name':C['company'],'telephone':C['phone_e164'],'url':C['origin'],'sameAs':[C['instagram']],'address':{'@type':'PostalAddress','addressLocality':'Los Garres','addressRegion':'Murcia','addressCountry':'ES'}},ensure_ascii=False).replace('</','<\\/')
  return f'''<!doctype html>
@@ -228,9 +229,9 @@ def document(title,desc,body,base='',path='index.html',current='',topic='',page=
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
 <meta name="theme-color" content="#0b0b0e">
-<meta property="og:type" content="website"><meta property="og:site_name" content="Reformarvel Construcciones"><meta property="og:locale" content="es_ES"><meta property="og:title" content="{esc(title)}"><meta property="og:description" content="{esc(desc)}"><meta property="og:url" content="{url}">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Reformarvel Construcciones"><meta property="og:locale" content="es_ES"><meta property="og:title" content="{esc(share_title or title)}"><meta property="og:description" content="{esc(share_desc or desc)}"><meta property="og:url" content="{url}">
 <meta property="og:image" content="{C['origin']}/assets/og/{og_name}.jpg"><meta property="og:image:secure_url" content="{C['origin']}/assets/og/{og_name}.jpg"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="{esc(og_alt)}">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{esc(title)}"><meta name="twitter:description" content="{esc(desc)}"><meta name="twitter:image" content="{C['origin']}/assets/og/{og_name}.jpg">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{esc(share_title or title)}"><meta name="twitter:description" content="{esc(share_desc or desc)}"><meta name="twitter:image" content="{C['origin']}/assets/og/{og_name}.jpg">
 <link rel="canonical" href="{url}">
 <script type="application/ld+json">{structured}</script>
 <link rel="icon" href="{base}assets/favicon.svg" type="image/svg+xml"><link rel="icon" href="{base}assets/favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="{base}assets/apple-touch-icon.png"><link rel="manifest" href="{base}assets/site.webmanifest">
@@ -391,7 +392,7 @@ home=f'''<section class="hero" data-hero>
 </section>
 {cta('')}
 <div class="lightbox" data-lightbox-box hidden><button type="button" class="lb-close" aria-label="Cerrar">×</button><button type="button" class="lb-prev round" aria-label="Anterior">{ARROW}</button><figure><img alt=""><figcaption></figcaption></figure><button type="button" class="lb-next round" aria-label="Siguiente">{ARROW}</button></div>'''
-(OUT/'index.html').write_text(document('Reformarvel Construcciones | Reformas en Los Garres, Murcia','Reformas pequeñas y a gran escala en Los Garres, Murcia. Once oficios de construcción y presupuesto sin compromiso por WhatsApp.',home),encoding='utf-8')
+(OUT/'index.html').write_text(document('Reformarvel Construcciones | Reformas en Los Garres, Murcia','Reformas pequeñas y a gran escala en Los Garres, Murcia. Once oficios de construcción y presupuesto sin compromiso por WhatsApp.',home,share_title='Reformarvel Construcciones · Reformas en Murcia',share_desc='Tu casa, a otro nivel. Once oficios con un mismo equipo y presupuesto sin compromiso por WhatsApp.'),encoding='utf-8')
 
 # ---------- Servicios ----------
 for index,s in enumerate(SERVICES):
@@ -436,7 +437,7 @@ for index,s in enumerate(SERVICES):
  <a class="pager-link next" href="{nxt[0]}.html"><small>Siguiente {ARROW}</small><span>{nxt[1]}</span>{image(nxt[0],"", "../",False,"pager-img","40vw")}</a>
 </nav>
 {cta('../',name)}'''
- (OUT/'servicios'/f'{slug}.html').write_text(document(f'{name} en Los Garres, Murcia | Reformarvel',f'{tag} Servicio de {name.lower()} de Reformarvel Construcciones en Los Garres, Murcia. Pide presupuesto sin compromiso por WhatsApp.',page,'../',f'servicios/{slug}.html',slug,name,'service'),encoding='utf-8')
+ (OUT/'servicios'/f'{slug}.html').write_text(document(f'{name} en Los Garres, Murcia | Reformarvel',f'{tag} Servicio de {name.lower()} de Reformarvel Construcciones en Los Garres, Murcia. Pide presupuesto sin compromiso por WhatsApp.',page,'../',f'servicios/{slug}.html',slug,name,'service',f'{name} · Reformarvel Construcciones',f'{tag} Pide tu presupuesto de {name.lower()} sin compromiso por WhatsApp. Los Garres, Murcia.'),encoding='utf-8')
 
 
 # ---------- Cómo trabajamos ----------
@@ -484,8 +485,8 @@ how=f'''<section class="p-hero">
 {cta('')}'''
 ogsrc=Image.new('RGB',(1536,1024))
 for k,side in enumerate(('antes','despues')):ogsrc.paste(Image.open(ASSETS/f'ba-salon-{side}-1000.webp').convert('RGB').resize((768,1024)),(k*768,0))
-ogsrc.save(ASSETS/'og'/'_salon.webp');og.card(ASSETS/'og'/'_salon.webp',['Cómo trabajamos'],'Del primer mensaje al último remate.','El método Reformarvel',LOGO,ASSETS/'og'/'como-trabajamos.jpg');(ASSETS/'og'/'_salon.webp').unlink()
-(OUT/'como-trabajamos.html').write_text(document('Cómo trabajamos | Reformarvel Construcciones','Así trabaja Reformarvel en Los Garres, Murcia: del primer WhatsApp al último remate en cuatro capítulos. Mira transformaciones de antes y después.',how,'','como-trabajamos.html','como-trabajamos','','how'),encoding='utf-8')
+ogsrc.save(ASSETS/'og'/'_salon.webp');og.card(ASSETS/'og'/'_salon.webp',['Cómo trabajamos'],'Del primer mensaje al último remate.','El método Reformarvel',LOGO,ASSETS/'og'/f'como-trabajamos-{OG_V}.jpg');(ASSETS/'og'/'_salon.webp').unlink()
+(OUT/'como-trabajamos.html').write_text(document('Cómo trabajamos | Reformarvel Construcciones','Así trabaja Reformarvel en Los Garres, Murcia: del primer WhatsApp al último remate en cuatro capítulos. Mira transformaciones de antes y después.',how,'','como-trabajamos.html','como-trabajamos','','how','Cómo trabajamos · Reformarvel Construcciones','Del primer WhatsApp al último remate, en cuatro capítulos. Arrastra y mira transformaciones de antes y después.'),encoding='utf-8')
 
 # ---------- Legales ----------
 for slug,title in [('aviso-legal','Aviso legal'),('privacidad','Privacidad')]:
